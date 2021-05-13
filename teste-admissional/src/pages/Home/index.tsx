@@ -1,5 +1,5 @@
 import { Icon } from '@fluentui/react'
-import { Dropdown, IDropdownOption, Label, PrimaryButton, TextField } from 'office-ui-fabric-react'
+import { Dropdown, IDropdownOption, Label, PrimaryButton, TextField } from '@fluentui/react';
 import React from 'react'
 import Loader from 'react-loader-spinner'
 import { useDispatch } from 'react-redux'
@@ -9,7 +9,6 @@ import IPhoneNumber from '../../interfaces/IPhoneNumber'
 import { LoadPhoneNumberRequest } from '../../storage/ducks/PhoneNumber/actions'
 import { useTypedSelector } from '../../storage/ducks/rootReducer'
 import { Container, SubTitle, Table, TableCell, TableControlsContainer, TableHeader, TableHeaderCell, TablePaginationContainer, TableRow, Title } from './styles'
-import { ITablePaginationProps } from './types'
 
 const Home: React.FC = (): React.ReactElement => {
     const dispatch = useDispatch()
@@ -29,9 +28,6 @@ const Home: React.FC = (): React.ReactElement => {
     const [filterSetupPriceMax, setFilterSetupPriceMax] = React.useState("");
     const [filterStatus, setFilterStatus] = React.useState<IDropdownOption | undefined>()
     const [filterId, setFilterId] = React.useState(0);
-
-
-    const countPages = React.useMemo(() => Math.ceil((ListPhoneNumbers?.length ?? 0) / rowsPerPage), [ListPhoneNumbers, rowsPerPage])
 
     const optionsStatus: IDropdownOption[] = [
         {
@@ -60,7 +56,7 @@ const Home: React.FC = (): React.ReactElement => {
 
 
         if (filterNumber)
-            array = array?.filter(e => (e.value?.startsWith(filterNumber) || e.value?.replace(/[^0-9,]/g, "")?.startsWith(filterNumber?.replace(/[^0-9,]/g, ""))))
+            array = array?.filter(e => (e.value?.startsWith(filterNumber) || e.value?.replace(/[^0-9]/g, "")?.startsWith(filterNumber?.replace(/[^0-9]/g, ""))))
 
         if (filterStatus && filterStatus?.key) {
             if (filterStatus?.key === 1)
@@ -69,22 +65,36 @@ const Home: React.FC = (): React.ReactElement => {
                 array = array?.filter(e => e?.active === false)
         }
 
+        if (filterMonthyPriceMin && Number(filterMonthyPriceMin?.replace(",", "")))
+            array = array?.filter(e => e?.monthyPrice >= Number(filterMonthyPriceMin?.replace(",", "")))
+
+        if (filterMonthyPriceMax && Number(filterMonthyPriceMax?.replace(",", "")))
+            array = array?.filter(e => e?.monthyPrice <= Number(filterMonthyPriceMax?.replace(",", "")))
+
+        if (filterSetupPriceMin && Number(filterSetupPriceMin?.replace(",", "")))
+            array = array?.filter(e => e?.setupPrice >= Number(filterSetupPriceMin?.replace(",", "")))
+
+        if (filterSetupPriceMax && Number(filterSetupPriceMax?.replace(",", "")))
+            array = array?.filter(e => e?.setupPrice <= Number(filterSetupPriceMax?.replace(",", "")))
+
 
         return array
     }, [filterNumber, filterStatus, filterId, ListPhoneNumbers, filterMonthyPriceMin, filterMonthyPriceMax, filterSetupPriceMin, filterSetupPriceMax,])
+    
+    const countPages = React.useMemo(() => Math.ceil((TableItems?.length ?? 0) / rowsPerPage), [TableItems, rowsPerPage])
 
-    const TablePagination: React.FC<ITablePaginationProps> = (props): React.ReactElement => {
-        return (
-            <TablePaginationContainer>
-                <CircleButton diametro={45} onClick={() => { setCurrentPage(0) }} disabled={currentPage === 0}><Icon iconName="DoubleChevronLeft" /> </CircleButton>
-                <CircleButton diametro={45} onClick={() => { setCurrentPage(currentPage - 1) }} disabled={currentPage === 0}> <Icon iconName="ChevronLeft" /> </CircleButton>
-                <CircleButton diametro={45}> {currentPage + 1}</CircleButton>
-                <CircleButton diametro={45} onClick={() => { setCurrentPage(currentPage + 1) }} disabled={(currentPage + 1) === countPages} ><Icon iconName="ChevronRight" /> </CircleButton>
-                <CircleButton diametro={45} onClick={() => { setCurrentPage(countPages - 1) }} disabled={(currentPage + 1) === countPages} ><Icon iconName="DoubleChevronRight" /> </CircleButton>
-            </TablePaginationContainer>
-        )
+    const formatNumber = (valor: string) => {
+        const value = valor?.replace(/[^0-9]/g, "");
+        const matches = value.match(/[,]/g) ?? [];
+        let newValue = value;
+        if (matches?.length > 1)
+            newValue = newValue.split(",")[0] + "," + newValue.split(",")[1]
+
+        return newValue
+
     }
 
+    const intlFormat = (value: number) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
     return (<Container>
         <div className="row mt-3">
             <Title>List of Phone Numbers</Title>
@@ -101,7 +111,7 @@ const Home: React.FC = (): React.ReactElement => {
                             <TextField
                                 placeholder="Ex: 100"
                                 value={countNumbers ? countNumbers?.toString() : ''}
-                                onChange={(_, newValue) => setCountNumbers(Number(newValue?.replace(/[^0-9,]/g, "") ?? 0))}
+                                onChange={(_, newValue) => setCountNumbers(Number(newValue?.replace(/[^0-9]/g, "") ?? 0))}
                             />
                         </div>
 
@@ -124,7 +134,7 @@ const Home: React.FC = (): React.ReactElement => {
                                 label="Rows Per Page"
                                 placeholder="Ex: 15"
                                 value={rowsPerPage?.toString()}
-                                onChange={(_, newValue) => { setRowsPerPage(Number(newValue?.replace(/[^0-9,]/g, "") ?? 0)) }}
+                                onChange={(_, newValue) => { setRowsPerPage(Number(newValue?.replace(/[^0-9]/g, "") ?? 0)) }}
                             />
                         </div>
 
@@ -134,7 +144,7 @@ const Home: React.FC = (): React.ReactElement => {
                                 label="Seach By Id "
                                 placeholder="Ex: 15"
                                 value={filterId ? filterId?.toString() : ''}
-                                onChange={(_, newValue) => { setFilterId(Number(newValue?.replace(/[^0-9,]/g, "") ?? 0)) }}
+                                onChange={(_, newValue) => { setFilterId(Number(newValue?.replace(/[^0-9]/g, "") ?? 0)) }}
                             />
                         </div>
                         <div className="col">
@@ -161,36 +171,36 @@ const Home: React.FC = (): React.ReactElement => {
                             <TextField
 
                                 label="Min Monthy Price"
-                                placeholder="+00 00 0000-0000"
-                                value={filterNumber}
-                                onChange={(_, newValue) => { setFilterNumber(newValue ?? '') }}
+                                placeholder="0.00"
+                                value={filterMonthyPriceMin}
+                                onChange={(_, newValue) => { setFilterMonthyPriceMin(intlFormat(Number(formatNumber((newValue === '' ? '0' : newValue?.replace(",", '')) ?? '0')) / 100)) }}
                             />
                         </div>
                         <div className="col ">
                             <TextField
 
                                 label="Max Monthy Price"
-                                placeholder="+00 00 0000-0000"
-                                value={filterNumber}
-                                onChange={(_, newValue) => { setFilterNumber(newValue ?? '') }}
+                                placeholder="0.00"
+                                value={filterMonthyPriceMax}
+                                onChange={(_, newValue) => { setFilterMonthyPriceMax(intlFormat(Number(formatNumber((newValue === '' ? '0' : newValue?.replace(",", '')) ?? '0')) / 100)) }}
                             />
                         </div>
                         <div className="col ">
                             <TextField
 
                                 label="Min Setup Price"
-                                placeholder="+00 00 0000-0000"
-                                value={filterNumber}
-                                onChange={(_, newValue) => { setFilterNumber(newValue ?? '') }}
+                                placeholder="0.00"
+                                value={filterSetupPriceMin}
+                                onChange={(_, newValue) => { setFilterSetupPriceMin(intlFormat(Number(formatNumber((newValue === '' ? '0' : newValue?.replace(",", '')) ?? '0')) / 100)) }}
                             />
                         </div>
                         <div className="col ">
                             <TextField
 
                                 label="Max Setup Price"
-                                placeholder="+00 00 0000-0000"
-                                value={filterNumber}
-                                onChange={(_, newValue) => { setFilterNumber(newValue ?? '') }}
+                                placeholder="0.00"
+                                value={filterSetupPriceMax}
+                                onChange={(_, newValue) => { setFilterSetupPriceMax(intlFormat(Number(formatNumber((newValue === '' ? '0' : newValue?.replace(",", '')) ?? '0')) / 100)) }}
                             />
                         </div>
                     </div>
@@ -228,7 +238,13 @@ const Home: React.FC = (): React.ReactElement => {
             </div>
             <div className="row mt-3">
                 <div className="col-12">
-                    <TablePagination currentPage={currentPage} countPages={countPages} Next={() => { }} Previous={() => { }} />
+                    <TablePaginationContainer>
+                        <CircleButton diametro={45} onClick={() => { setCurrentPage(0) }} disabled={currentPage === 0}><Icon iconName="DoubleChevronLeft" /> </CircleButton>
+                        <CircleButton diametro={45} onClick={() => { setCurrentPage(currentPage - 1) }} disabled={currentPage === 0}> <Icon iconName="ChevronLeft" /> </CircleButton>
+                        <CircleButton diametro={45}> {currentPage + 1}</CircleButton>
+                        <CircleButton diametro={45} onClick={() => { setCurrentPage(currentPage + 1) }} disabled={(currentPage + 1) === countPages} ><Icon iconName="ChevronRight" /> </CircleButton>
+                        <CircleButton diametro={45} onClick={() => { setCurrentPage(countPages - 1) }} disabled={(currentPage + 1) === countPages} ><Icon iconName="DoubleChevronRight" /> </CircleButton>
+                    </TablePaginationContainer>
                 </div>
             </div>
 
@@ -252,7 +268,7 @@ const Home: React.FC = (): React.ReactElement => {
                         <div style={{ width: 'max-content' }}>
                             <TextField
                                 value={goTo ? goTo?.toString() : ''}
-                                onChange={(_, newValue) => setGoTo(Number(newValue?.replace(/[^0-9,]/g, "") ?? 0))}
+                                onChange={(_, newValue) => setGoTo(Number(newValue?.replace(/[^0-9]/g, "") ?? 0))}
                             />
                         </div>
                         <div style={{ width: 'max-content' }}>

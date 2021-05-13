@@ -7,7 +7,7 @@ export const  PhoneNumberGenerator = (count: number): IPhoneNumber[] => Array(co
     currency: "R$",
     idClient: undefined,
     monthyPrice: Number(getRndNumber(1,10,2)),
-    setupPrice: Number(getRndNumber(20,30,2)),
+    setupPrice: Number(getRndNumber(10,30,2)),
     value: `+55 ${getRndNumber(10,100, 0)} 9${getRndNumber(1000,10000,0)}-${getRndNumber(1000,10000,0)}`
 
 }))

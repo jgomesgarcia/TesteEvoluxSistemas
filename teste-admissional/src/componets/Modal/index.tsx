@@ -1,4 +1,4 @@
-import { Icon } from 'office-ui-fabric-react';
+import { Icon } from '@fluentui/react';
 import React from 'react';
 import { ButtonsContainer, Cancel, Submit } from './styles';
 import { Background, Container, Header, Body, Footer } from './styles';
